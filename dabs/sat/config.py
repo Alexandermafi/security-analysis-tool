@@ -51,28 +51,44 @@ def form():
     questions = questions + cloud_specific_questions(client)
     return client, prompt(questions), profile
 
+def get_env_variable(var_name, prompt_message, is_password=False):
+    """Get the environment variable or prompt the user for input if not set."""
+    value = os.getenv(var_name)
+    if value is None:
+        if is_password:
+            questions = [Password(name=var_name, message=prompt_message)]
+        else:
+            questions = [Text(name=var_name, message=prompt_message)]
+        answers = prompt(questions)
+        value = answers[var_name]
+        os.environ[var_name] = value
+    return value
 
-def cloud_specific_questions(client: WorkspaceClient):
+def cloud_specific_questions(client):
     azure = [
         Text(
             name="azure-tenant-id",
             message="Azure Tenant ID",
             ignore=cloud_validation(client, "azure"),
+            default=get_env_variable("AZURE_TENANT_ID", "Enter Azure Tenant ID")
         ),
         Text(
             name="azure-subscription-id",
             message="Azure Subscription ID",
             ignore=cloud_validation(client, "azure"),
+            default=get_env_variable("AZURE_SUBSCRIPTION_ID", "Enter Azure Subscription ID")
         ),
         Text(
             name="azure-client-id",
             message="Client ID",
             ignore=cloud_validation(client, "azure"),
+            default=get_env_variable("AZURE_CLIENT_ID", "Enter Azure Client ID")
         ),
         Password(
             name="azure-client-secret",
             message="Client Secret",
             ignore=cloud_validation(client, "azure"),
+            default=get_env_variable("AZURE_CLIENT_SECRET", "Enter Azure Client Secret", is_password=True),
             echo="",
         ),
     ]
@@ -81,12 +97,13 @@ def cloud_specific_questions(client: WorkspaceClient):
             name="gcp-gs-path-to-json",
             message="Path to JSON key file",
             ignore=cloud_validation(client, "gcp"),
+            default=get_env_variable("GCP_GS_PATH_TO_JSON", "Enter Path to JSON key file")
         ),
         Text(
             name="gcp-impersonate-service-account",
             message="Impersonate Service Account",
             ignore=cloud_validation(client, "gcp"),
-            default="",
+            default=get_env_variable("GCP_IMPERSONATE_SERVICE_ACCOUNT", "Enter Impersonate Service Account")
         ),
     ]
     aws = [
@@ -94,11 +111,13 @@ def cloud_specific_questions(client: WorkspaceClient):
             name="aws-client-id",
             message="Client ID",
             ignore=cloud_validation(client, "aws"),
+            default=get_env_variable("AWS_CLIENT_ID", "Enter AWS Client ID")
         ),
         Password(
             name="aws-client-secret",
             message="Client Secret",
             ignore=cloud_validation(client, "aws"),
+            default=get_env_variable("AWS_CLIENT_SECRET", "Enter AWS Client Secret", is_password=True),
             echo="",
         ),
     ]
