@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 
 from databricks.sdk import WorkspaceClient
 from sat.config import form, generate_secrets
@@ -39,8 +40,10 @@ def install(client: WorkspaceClient, answers: dict, profile: str):
 
 def setup():
     try:
+
         client, answers, profile = form()
-        install(client, answers, profile)
+        print(answers)
+        # install(client, answers, profile)
     except KeyboardInterrupt:
         print("Installation aborted.")
     except Exception as e:
@@ -49,4 +52,7 @@ def setup():
 
 if __name__ == "__main__":
     os.system("clear")
+    if len(sys.argv) > 1:
+        if sys.argv[1].lower() == "true":
+            os.environ["SAT_ENV_VARS"] = sys.argv[1].lower()
     setup()

@@ -1,6 +1,17 @@
 #/bin/bash
 
 folder="dabs"
+env_vars=false
+
+
+# Loop through all arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --env-vars) env_vars="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
 
 version=$(python -c "import sys; print(sys.version_info[:])" 2>&1)
 if [[ -z "$version" ]]; then
@@ -18,4 +29,4 @@ fi
 
 cd $folder
 pip install -r requirements.txt
-python main.py
+python main.py $env_vars

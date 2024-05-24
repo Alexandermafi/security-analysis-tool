@@ -25,6 +25,27 @@ def loading(func, message: str = "Loading...", client: WorkspaceClient = None):
     return res
 
 
+def ignore_validation(client, cloud, x, var_name, name):
+    cloud_type = None
+    if "azure" in client.config.host:
+        cloud_type = "azure"
+    elif "gcp" in client.config.host:
+        cloud_type = "gcp"
+    else:
+        cloud_type = "aws"
+
+    if cloud_type == cloud or cloud == "account_id":
+        print(os.getenv(var_name))
+        if (
+            os.getenv(var_name) is not None
+            and os.getenv("SAT_ENV_VARS", "").lower() == "true"
+        ):
+            x[name] = os.getenv(var_name)
+            return True
+        return False
+    return True
+
+
 def cloud_validation(client, cloud):
     cloud_type = None
     if "azure" in client.config.host:

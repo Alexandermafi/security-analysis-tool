@@ -11,6 +11,7 @@ from sat.utils import (
     get_catalogs,
     get_profiles,
     get_warehouses,
+    ignore_validation,
     loading,
 )
 
@@ -28,6 +29,9 @@ def form():
             message="Databricks Account ID",
             validate=lambda _, x: re.match(
                 r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", x
+            ),
+            ignore=lambda x: ignore_validation(
+                client, "account_id", x, "DATABRICKS_ACCOUNT_ID", "account_id"
             ),
         ),
         Confirm(
@@ -51,44 +55,36 @@ def form():
     questions = questions + cloud_specific_questions(client)
     return client, prompt(questions), profile
 
-def get_env_variable(var_name, prompt_message, is_password=False):
-    """Get the environment variable or prompt the user for input if not set."""
-    value = os.getenv(var_name)
-    if value is None:
-        if is_password:
-            questions = [Password(name=var_name, message=prompt_message)]
-        else:
-            questions = [Text(name=var_name, message=prompt_message)]
-        answers = prompt(questions)
-        value = answers[var_name]
-        os.environ[var_name] = value
-    return value
 
 def cloud_specific_questions(client):
     azure = [
         Text(
             name="azure-tenant-id",
             message="Azure Tenant ID",
-            ignore=cloud_validation(client, "azure"),
-            default=get_env_variable("AZURE_TENANT_ID", "Enter Azure Tenant ID")
+            ignore=lambda x: ignore_validation(
+                client, "azure", x, "AZURE_TENANT_ID", "azure-tenant-id"
+            ),
         ),
         Text(
             name="azure-subscription-id",
             message="Azure Subscription ID",
-            ignore=cloud_validation(client, "azure"),
-            default=get_env_variable("AZURE_SUBSCRIPTION_ID", "Enter Azure Subscription ID")
+            ignore=lambda x: ignore_validation(
+                client, "azure", x, "AZURE_SUBSCRIPTION_ID", "azure-subscription-id"
+            ),
         ),
         Text(
             name="azure-client-id",
             message="Client ID",
-            ignore=cloud_validation(client, "azure"),
-            default=get_env_variable("AZURE_CLIENT_ID", "Enter Azure Client ID")
+            ignore=lambda x: ignore_validation(
+                client, "azure", x, "AZURE_CLIENT_ID", "azure-client-id"
+            ),
         ),
         Password(
             name="azure-client-secret",
             message="Client Secret",
-            ignore=cloud_validation(client, "azure"),
-            default=get_env_variable("AZURE_CLIENT_SECRET", "Enter Azure Client Secret", is_password=True),
+            ignore=lambda x: ignore_validation(
+                client, "azure", x, "AZURE_CLIENT_SECRET", "azure-client-secret"
+            ),
             echo="",
         ),
     ]
@@ -96,28 +92,48 @@ def cloud_specific_questions(client):
         Text(
             name="gcp-gs-path-to-json",
             message="Path to JSON key file",
-            ignore=cloud_validation(client, "gcp"),
-            default=get_env_variable("GCP_GS_PATH_TO_JSON", "Enter Path to JSON key file")
+            ignore=lambda x: ignore_validation(
+                client,
+                "gcp",
+                x,
+                "GCP_JSON_PATH",
+                "gcp-gs-path-to-json",
+            ),
         ),
         Text(
             name="gcp-impersonate-service-account",
             message="Impersonate Service Account",
-            ignore=cloud_validation(client, "gcp"),
-            default=get_env_variable("GCP_IMPERSONATE_SERVICE_ACCOUNT", "Enter Impersonate Service Account")
+            ignore=lambda x: ignore_validation(
+                client,
+                "gcp",
+                x,
+                "GCP_IMPERSONATE_SA",
+                "gcp-impersonate-service-account",
+            ),
         ),
     ]
     aws = [
         Text(
             name="aws-client-id",
             message="Client ID",
-            ignore=cloud_validation(client, "aws"),
-            default=get_env_variable("AWS_CLIENT_ID", "Enter AWS Client ID")
+            ignore=lambda x: ignore_validation(
+                client,
+                "aws",
+                x,
+                "AWS_CLIENT_ID",
+                "aws-client-id",
+            ),
         ),
         Password(
             name="aws-client-secret",
             message="Client Secret",
-            ignore=cloud_validation(client, "aws"),
-            default=get_env_variable("AWS_CLIENT_SECRET", "Enter AWS Client Secret", is_password=True),
+            ignore=lambda x: ignore_validation(
+                client,
+                "aws",
+                x,
+                "AWS_CLIENT_SECRET",
+                "aws-client-secret",
+            ),
             echo="",
         ),
     ]
