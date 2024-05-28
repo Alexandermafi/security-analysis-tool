@@ -50,9 +50,14 @@ def setup():
         print(f"An error occurred: {e}")
 
 
-if __name__ == "__main__":
+def main():
     os.system("clear")
     if len(sys.argv) > 1:
         if sys.argv[1].lower() == "true":
             os.environ["SAT_ENV_VARS"] = sys.argv[1].lower()
     setup()
+
+
+
+if __name__ == "__main__":
+    main()
